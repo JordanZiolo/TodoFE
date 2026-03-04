@@ -72,7 +72,9 @@ describe("Oefening 5 — TodoItem component", () => {
   //    expect(label.text()).toBe("Test todo")
   //
   it("toont de titel van de todo in een label", () => {
-    expect(true).toBe(false); // Deze regel mag je weghalen als je met deze test aan de slag gaat
+    const wrapper = mountTodoItem();
+    const label = wrapper.find("label");
+    expect(label.text()).toBe("Test todo");
   });
 
   // -------------------------------------------------------------------------
@@ -87,7 +89,9 @@ describe("Oefening 5 — TodoItem component", () => {
   //    💡 Controleer of li de CSS-klasse "completed" heeft
   //
   it("heeft de klasse 'completed' als de todo klaar is", () => {
-    expect(true).toBe(false); // Deze regel mag je weghalen als je met deze test aan de slag gaat
+    const wrapper = mountTodoItem({ id: "1", title: "Klaar", completed: true });
+    const li = wrapper.find("li");
+    expect(li.classes()).toContain("completed");
   });
 
   // -------------------------------------------------------------------------
@@ -105,7 +109,10 @@ describe("Oefening 5 — TodoItem component", () => {
   //    💡 Controleer of het event "delete-todo" is uitgestuurd
   //
   it("stuurt 'delete-todo' uit als op het destroy-knopje wordt geklikt", async () => {
-    expect(true).toBe(false); // Deze regel mag je weghalen als je met deze test aan de slag gaat
+    const wrapper = mountTodoItem();
+    const button = wrapper.find(".destroy");
+    await button.trigger("click");
+    expect(wrapper.emitted("delete-todo")).toBeTruthy();
   });
 
   // -------------------------------------------------------------------------
@@ -122,18 +129,72 @@ describe("Oefening 5 — TodoItem component", () => {
   //    💡 Controleer of het <li> element nu de CSS-klasse "editing" heeft
   //
   it("gaat in bewerkmodus als je dubbelklikt op het label", async () => {
-    expect(true).toBe(false); // Deze regel mag je weghalen als je met deze test aan de slag gaat
+    const wrapper = mountTodoItem();
+    const label = wrapper.find("label");
+    await label.trigger("dblclick");
+    expect(wrapper.find("li").classes()).toContain("editing");
   });
 
   // -------------------------------------------------------------------------
-  //  🧠 BONUS: Kun je nog meer dingen testen?
+  //  🧠 BONUS: Extra tests
+  //
+  //  ℹ️ LET OP: De oplossingen hieronder zijn VOORBEELDEN.
+  //  Er zijn meerdere goede manieren om hetzelfde gedrag te testen!
+  //  Jouw aanpak mag anders zijn — zolang je het juiste gedrag controleert.
+  //  Bijvoorbeeld: je kunt ook op specifieke event-payloads checken,
+  //  of andere CSS-klassen/attributen gebruiken als bewijs.
   // -------------------------------------------------------------------------
-  //
-  //  - Wat gebeurt er als je een todo bewerkt en de titel leeg maakt?
-  //    (Open TodoItem.vue en kijk naar de finishEdit-functie!)
-  //
-  //  - Wat als je Escape indrukt tijdens het bewerken? Wordt het geannuleerd?
-  //
-  //  - Is het selectievakje aangevinkt als de todo klaar is?
-  //
+
+  // -- Bonus: lege titel = verwijderen --------------------------------------
+  // In TodoItem.vue checkt finishEdit() of de tekst leeg is.
+  // Zo ja: dan wordt deleteTodo() aangeroepen i.p.v. updateTodo().
+  // We controleren dat het event "delete-todo" wordt uitgestuurd.
+  // Je zou ook kunnen checken dat "edit-todo" NIET werd uitgestuurd.
+  it("stuurt 'delete-todo' uit als je de titel leeg maakt tijdens bewerken", async () => {
+    const wrapper = mountTodoItem();
+
+    // Dubbelklik om in bewerkmodus te gaan
+    await wrapper.find("label").trigger("dblclick");
+
+    // Maak de titel leeg en druk op Enter
+    const editInput = wrapper.find(".edit");
+    await editInput.setValue("");
+    await editInput.trigger("keyup.enter");
+
+    // finishEdit verwijdert de todo als de titel leeg is
+    expect(wrapper.emitted("delete-todo")).toBeTruthy();
+  });
+
+  // -- Bonus: annuleer bewerken via blur ------------------------------------
+  // Als het invoerveld focus verliest (blur), wordt cancelEdit() aangeroepen.
+  // De "editing" klasse verdwijnt dan.
+  // Alternatief: je zou ook @keyup.escape kunnen testen als dat in de
+  // template was gekoppeld — in dit component wordt blur gebruikt.
+  it("annuleert bewerken als het invoerveld focus verliest (blur)", async () => {
+    const wrapper = mountTodoItem();
+
+    // Ga in bewerkmodus
+    await wrapper.find("label").trigger("dblclick");
+    expect(wrapper.find("li").classes()).toContain("editing");
+
+    // Verlaat het invoerveld (blur) → editing stopt
+    const editInput = wrapper.find(".edit");
+    await editInput.trigger("blur");
+    expect(wrapper.find("li").classes()).not.toContain("editing");
+  });
+
+  // -- Bonus: checkbox status ------------------------------------------------
+  // Het selectievakje moet de "completed" status van de todo reflecteren.
+  // Je zou ook v-model of toggleModel kunnen testen — dit is simpeler.
+  it("heeft het selectievakje aangevinkt als de todo klaar is", () => {
+    const wrapper = mountTodoItem({ id: "1", title: "Klaar", completed: true });
+    const checkbox = wrapper.find(".toggle");
+    expect((checkbox.element as HTMLInputElement).checked).toBe(true);
+  });
+
+  it("heeft het selectievakje NIET aangevinkt als de todo niet klaar is", () => {
+    const wrapper = mountTodoItem({ id: "1", title: "Bezig", completed: false });
+    const checkbox = wrapper.find(".toggle");
+    expect((checkbox.element as HTMLInputElement).checked).toBe(false);
+  });
 });

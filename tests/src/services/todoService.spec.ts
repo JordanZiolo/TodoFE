@@ -105,62 +105,52 @@ describe("Oefening 1 — Los de bug op in deleteCompleted", () => {
 //
 describe("Oefening 2 — Maak de assertions af", () => {
   it("toggleTodo: zet een todo op voltooid", () => {
-    expect(true).toBe(false); // Deze regel mag je weghalen als je met deze test aan de slag gaat
-
     const todo = { id: "1", title: "Test me", completed: false };
 
     const result = toggleTodo(todo, true);
 
-    // Haal de comments weg en vul ??? in:
-
     // Na toggelen naar true, wat moet completed zijn?
-    // expect(result.completed).toBe(???);
+    expect(result.completed).toBe(true);
 
     // Is de titel veranderd? Dat mag niet!
-    // expect(result.title).toBe(???);
+    expect(result.title).toBe("Test me");
   });
 
   it("toggleTodo: zet een voltooide todo weer op actief", () => {
-    expect(true).toBe(false); // Deze regel mag je weghalen als je met deze test aan de slag gaat
-
     const todo = { id: "1", title: "Test me", completed: true };
 
     const result = toggleTodo(todo, false);
 
-    // TODO: Schrijf hier je verwachtingen
+    expect(result.completed).toBe(false);
+    expect(result.title).toBe("Test me");
   });
 
   it("editTodo: verandert de titel van een todo", () => {
-    expect(true).toBe(false); // Deze regel mag je weghalen als je met deze test aan de slag gaat
-
     const todo = { id: "1", title: "Old title", completed: false };
 
     const result = editTodo(todo, "New title");
-    // Haal de comments weg en vul ??? in:
 
     // Wat moet de nieuwe titel zijn?
-    // expect(result.title).toBe(???);
+    expect(result.title).toBe("New title");
 
     // Is completed veranderd? Dat mag niet — we hebben alleen de titel aangepast!
-    // expect(result.completed).toBe(???);
+    expect(result.completed).toBe(false);
 
     // Is het ORIGINELE todo-object veranderd? Nee — editTodo geeft een kopie terug.
-    // expect(todo.title).toBe(???);
+    expect(todo.title).toBe("Old title");
   });
 
   it("deleteTodo: verwijdert een specifieke todo uit de lijst", () => {
-    expect(true).toBe(false); // Deze regel mag je weghalen als je met deze test aan de slag gaat
-
     const todos = makeTodoList();
     const todoToDelete = todos[1]; // "Walk the dog"
 
     const result = deleteTodo(todos, todoToDelete);
 
     // Hoeveel todos moeten er over zijn na verwijderen?
-    // expect(result).toHaveLength(???);
+    expect(result).toHaveLength(2);
 
     // Is "Walk the dog" weg? Deze regel checkt dat hij NIET meer in de lijst staat:
-    // expect(result.find(t => t.title === "Walk the dog")).toBeUndefined();
+    expect(result.find(t => t.title === "Walk the dog")).toBeUndefined();
   });
 });
 
@@ -186,32 +176,30 @@ describe("Oefening 2 — Maak de assertions af", () => {
 //
 describe("Oefening 3 — Schrijf je eigen tests", () => {
   it("getActiveTodos: geeft alleen niet-voltooide todos terug", () => {
-    expect(true).toBe(false); // Deze regel mag je weghalen als je met deze test aan de slag gaat
+    const todos = makeTodoList();
 
-    // Onze makeTodoList() heeft 3 todos: 2 actief, 1 voltooid.
-    // Na getActiveTodos() krijg je alleen de 2 actieve terug.
-    //
-    // Schrijf je test hier:
+    const result = getActiveTodos(todos);
+
+    expect(result).toHaveLength(2);
+    expect(result[0].title).toBe("Buy groceries");
+    expect(result[1].title).toBe("Do homework");
   });
 
   it("getCompletedTodos: geeft alleen voltooide todos terug", () => {
-    expect(true).toBe(false); // Deze regel mag je weghalen als je met deze test aan de slag gaat
+    const todos = makeTodoList();
 
-    // Zelfde idee als hierboven, maar nu alleen de voltooide.
-    // Hoeveel voltooide todos heeft makeTodoList()? (antwoord: 1)
-    //
-    // Schrijf je test hier:
+    const result = getCompletedTodos(todos);
+
+    expect(result).toHaveLength(1);
+    expect(result[0].title).toBe("Walk the dog");
   });
 
   it("createTodo: maakt een todo met de opgegeven titel", () => {
-    expect(true).toBe(false); // Deze regel mag je weghalen als je met deze test aan de slag gaat
+    const result = createTodo("Mijn nieuwe todo");
 
-    // Roep createTodo("Mijn nieuwe todo") aan en controleer:
-    //   - Heeft hij de juiste titel?
-    //   - Is completed op false gezet? (nieuwe todos zijn nog niet klaar!)
-    //   - Heeft hij een id? (maakt niet uit welke, als hij maar bestaat)
-    //
-    // Schrijf je test hier:
+    expect(result.title).toBe("Mijn nieuwe todo");
+    expect(result.completed).toBe(false);
+    expect(result.id).toBeDefined();
   });
 
   // ===========================================================================
@@ -229,13 +217,91 @@ describe("Oefening 3 — Schrijf je eigen tests", () => {
   //
   //  Hier is er één als voorbeeld — kopieer dit patroon voor de rest:
   //
-  //  it("getActiveTodos: geeft een lege array terug als alles voltooid is", () => {
-  //    const todos = [
-  //      { id: "1", title: "Klaar 1", completed: true },
-  //      { id: "2", title: "Klaar 2", completed: true },
-  //    ];
-  //    const result = getActiveTodos(todos);
-  //    expect(result).toHaveLength(0);
-  //  });
-  //
+  //  ℹ️ LET OP: De oplossingen hieronder zijn VOORBEELDEN.
+  //  Er zijn meerdere goede manieren om dezelfde situatie te testen.
+  //  Jouw tests mogen er anders uitzien en toch correct zijn!
+  //  Bijvoorbeeld: je kunt ook checken op specifieke titels i.p.v. alleen
+  //  de lengte, of je kunt andere edge-case scenario's bedenken.
+
+  // -- Voorbeeld edge case: alles is al voltooid --------------------------
+  // Als alle todos klaar zijn, hoort getActiveTodos een lege lijst terug te geven.
+  it("getActiveTodos: geeft een lege array terug als alles voltooid is", () => {
+    const todos = [
+      { id: "1", title: "Klaar 1", completed: true },
+      { id: "2", title: "Klaar 2", completed: true },
+    ];
+    const result = getActiveTodos(todos);
+    expect(result).toHaveLength(0);
+  });
+
+  // -- Edge case: lege titel -----------------------------------------------
+  // Wat als iemand per ongeluk een todo aanmaakt zonder tekst?
+  // addTodo maakt gewoon een todo aan — het controleert zelf niet op lege tekst.
+  // Je zou ook kunnen testen dat de titel exact "" is, of dat id gedefinieerd is.
+  it("addTodo: voegt een todo toe met een lege titel", () => {
+    const result = addTodo([], "");
+
+    // De functie maakt hem gewoon aan — hij valideert niet.
+    // In een echte app zou je misschien WEL een check willen toevoegen!
+    expect(result).toHaveLength(1);
+    expect(result[0].title).toBe("");
+    expect(result[0].completed).toBe(false);
+  });
+
+  // -- Edge case: verwijder iets dat niet bestaat ---------------------------
+  // deleteTodo filtert op referentie (===). Als de todo niet in de lijst zit,
+  // wordt er niets verwijderd. De originele lijst blijft intact.
+  // Een andere geldige aanpak: check dat de titels van alle 3 items nog kloppen.
+  it("deleteTodo: lijst blijft ongewijzigd als de todo niet in de lijst staat", () => {
+    const todos = makeTodoList();
+    const unknown = { id: "999", title: "Onbekend", completed: false };
+    const result = deleteTodo(todos, unknown);
+    expect(result).toHaveLength(3);
+  });
+
+  // -- Edge case: niets voltooid → deleteCompleted doet niets ---------------
+  // Als er geen voltooide todos zijn, krijg je gewoon alles terug.
+  // Je zou ook kunnen controleren dat de titels exact overeenkomen.
+  it("deleteCompleted: geeft dezelfde items terug als er niets voltooid is", () => {
+    const todos = [
+      { id: "1", title: "Actief 1", completed: false },
+      { id: "2", title: "Actief 2", completed: false },
+    ];
+    const result = deleteCompleted(todos);
+    expect(result).toHaveLength(2);
+  });
+
+  // -- Edge case: geen voltooide todos → getCompletedTodos = leeg -----------
+  // Simpel: als niets voltooid is, krijg je een lege array terug.
+  it("getCompletedTodos: geeft een lege array terug als niets voltooid is", () => {
+    const todos = [
+      { id: "1", title: "Actief", completed: false },
+    ];
+    const result = getCompletedTodos(todos);
+    expect(result).toHaveLength(0);
+  });
+
+  // -- Edge case: volledig lege lijst ---------------------------------------
+  // Dit zijn de simpelste edge cases: een lege array als invoer.
+  // Je zou dit ook in één test kunnen combineren — dat is ook prima!
+  it("getActiveTodos: geeft een lege array terug bij een lege lijst", () => {
+    const result = getActiveTodos([]);
+    expect(result).toHaveLength(0);
+  });
+
+  it("getCompletedTodos: geeft een lege array terug bij een lege lijst", () => {
+    const result = getCompletedTodos([]);
+    expect(result).toHaveLength(0);
+  });
+
+  // -- Edge case: alles voltooid → deleteCompleted maakt de lijst leeg ------
+  // Als alle todos klaar zijn en je ruimt op, houd je niets over.
+  it("deleteCompleted: geeft een lege array terug als alles voltooid is", () => {
+    const todos = [
+      { id: "1", title: "Klaar 1", completed: true },
+      { id: "2", title: "Klaar 2", completed: true },
+    ];
+    const result = deleteCompleted(todos);
+    expect(result).toHaveLength(0);
+  });
 });

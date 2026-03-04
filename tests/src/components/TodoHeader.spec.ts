@@ -82,7 +82,7 @@ describe("Oefening 4 — TodoHeader component", () => {
 
     // Druk op Enter — maar is "keydown" wel correct? 🤔
     // Vergelijk dit met wat TodoHeader.vue daadwerkelijk luistert!
-    await input.trigger("keydown.enter");
+    await input.trigger("keyup.enter");
 
     // Controleer: heeft het component zijn ouder verteld "voeg deze todo toe"?
     // In Vue praten componenten met ouders via "events" (zoals callbacks in React)
@@ -98,9 +98,26 @@ describe("Oefening 4 — TodoHeader component", () => {
 
   // -----------------------------------------------------------------
   //  🏗️ BONUS: Na het drukken op Enter moet het inputveld leeg zijn
-  //  (zodat de gebruiker meteen een nieuwe todo kan typen).
   //
-  //  Schrijf een test die dit controleert!
-  //  Tip: na Enter, check  input.element.value === ""
+  //  ℹ️ Dit is één mogelijke oplossing. Je zou ook kunnen:
+  //  - Eerst checken dat het veld NIET leeg is vóór Enter
+  //  - Of de tekst "Buy milk" specifiek controleren vóór Enter
+  //  Zolang je controleert dat het veld leeg is NA Enter, is het goed!
   // -----------------------------------------------------------------
+  it("moet het inputveld leegmaken na het drukken op Enter", async () => {
+    const wrapper = mount(TodoHeader, {
+      global: { plugins: [makeRouter()] },
+    });
+
+    const input = wrapper.find(".new-todo");
+
+    // 1. Typ iets in het veld
+    await input.setValue("Buy milk");
+
+    // 2. Druk op Enter (keyup, want dat is wat het component luistert)
+    await input.trigger("keyup.enter");
+
+    // 3. Na Enter moet het inputveld leeg zijn — klaar voor de volgende todo
+    expect((input.element as HTMLInputElement).value).toBe("");
+  });
 });

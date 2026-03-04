@@ -115,7 +115,8 @@ describe("Oefening 6 — Volledige app integratie", () => {
 
     // JOUW BEURT: controleer dat de teller "2" zegt
     // De teller heeft class="todo-count". Haal de tekst op en controleer of die "2" bevat.
-    expect(true).toBe(false); // Deze regel mag je weghalen als je met deze test aan de slag gaat
+    const count = wrapper.find(".todo-count");
+    expect(count.text()).toContain("2");
   });
 
   // -------------------------------------------------------------------------
@@ -129,27 +130,102 @@ describe("Oefening 6 — Volledige app integratie", () => {
   //  5. Controleer dat er nog maar 1 todo is  (findAll ".todo-list li", verwacht lengte 1)
   //
   it("verwijdert voltooide todos als op 'Clear Completed' wordt geklikt", async () => {
-    expect(true).toBe(false); // Verwijder deze regel en schrijf je test hier:
+    const { wrapper } = await mountApp();
+
+    // Voeg 2 todos toe
+    await addTodo(wrapper, "Eerste");
+    await addTodo(wrapper, "Tweede");
+
+    // Vink de eerste af
+    const firstCheckbox = wrapper.find(".todo-list li .toggle");
+    await firstCheckbox.setValue(true);
+
+    // Klik op "Clear Completed"
+    const clearBtn = wrapper.find(".clear-completed");
+    await clearBtn.trigger("click");
+
+    // Er moet nog maar 1 todo over zijn
+    const items = wrapper.findAll(".todo-list li");
+    expect(items).toHaveLength(1);
   });
 
   // -------------------------------------------------------------------------
   //  🧠 BONUS: Test de filterlinks (All / Active / Completed)
+  //
+  //  ℹ️ LET OP: De oplossingen hieronder zijn VOORBEELDEN.
+  //  Jouw tests mogen er anders uitzien en toch correct zijn!
+  //  Bijvoorbeeld: je kunt ook de tekst van elke todo controleren,
+  //  of je kunt alle 3 de routes in één test combineren.
+  //  Zolang je controleert dat de juiste todos zichtbaar zijn, is het goed.
   // -------------------------------------------------------------------------
-  //  De app heeft 3 "pagina's": All, Active en Completed.
-  //  Ze filteren welke todos je ziet.
-  //
-  //  Probeer dit:
-  //  1. Voeg 3 todos toe, voltooi er 1
-  //  2. Ga naar /active — je zou 2 todos moeten zien
-  //  3. Ga naar /completed — je zou 1 todo moeten zien
-  //  4. Ga naar / — je zou weer alle 3 moeten zien
-  //
-  //  Zo navigeer je in een test:
-  //    const { wrapper, router } = await mountApp();
-  //    await router.push("/active");
-  //    await wrapper.vm.$nextTick();   // wacht tot de pagina is bijgewerkt
-  //
-  //  Daarna tel je de todos:
-  //    expect(wrapper.findAll(".todo-list li")).toHaveLength(2);
-  //
+
+  // -- Bonus: /active filter ------------------------------------------------
+  // Na het afvinken van 1 van 3 todos en navigeren naar /active,
+  // moeten alleen de 2 actieve (niet-afgevinkte) todos zichtbaar zijn.
+  // Je zou hier ook kunnen checken welke titels er WEL staan.
+  it("filtert todos op /active — toont alleen actieve todos", async () => {
+    const { wrapper, router } = await mountApp();
+
+    // Voeg 3 todos toe
+    await addTodo(wrapper, "Eerste");
+    await addTodo(wrapper, "Tweede");
+    await addTodo(wrapper, "Derde");
+
+    // Vink de eerste af (completed = true)
+    const firstCheckbox = wrapper.find(".todo-list li .toggle");
+    await firstCheckbox.setValue(true);
+
+    // Ga naar de /active pagina
+    await router.push("/active");
+    await wrapper.vm.$nextTick(); // wacht tot Vue de DOM heeft bijgewerkt
+
+    // Alleen de 2 niet-afgevinkte todos moeten zichtbaar zijn
+    expect(wrapper.findAll(".todo-list li")).toHaveLength(2);
+  });
+
+  // -- Bonus: /completed filter ---------------------------------------------
+  // Zelfde opzet, maar nu navigeren we naar /completed.
+  // Alleen de 1 afgevinkte todo moet zichtbaar zijn.
+  it("filtert todos op /completed — toont alleen voltooide todos", async () => {
+    const { wrapper, router } = await mountApp();
+
+    await addTodo(wrapper, "Eerste");
+    await addTodo(wrapper, "Tweede");
+    await addTodo(wrapper, "Derde");
+
+    // Vink de eerste af
+    const firstCheckbox = wrapper.find(".todo-list li .toggle");
+    await firstCheckbox.setValue(true);
+
+    // Ga naar de /completed pagina
+    await router.push("/completed");
+    await wrapper.vm.$nextTick();
+
+    // Alleen de 1 voltooide todo moet zichtbaar zijn
+    expect(wrapper.findAll(".todo-list li")).toHaveLength(1);
+  });
+
+  // -- Bonus: terug naar / (all) --------------------------------------------
+  // Na het wisselen van filters moet / weer ALLE todos tonen.
+  // Dit bewijst dat filteren geen todos verwijdert — het verbergt ze alleen.
+  it("toont alle todos op / na filteren", async () => {
+    const { wrapper, router } = await mountApp();
+
+    await addTodo(wrapper, "Eerste");
+    await addTodo(wrapper, "Tweede");
+    await addTodo(wrapper, "Derde");
+
+    // Vink de eerste af
+    const firstCheckbox = wrapper.find(".todo-list li .toggle");
+    await firstCheckbox.setValue(true);
+
+    // Ga heen en weer tussen filters
+    await router.push("/active");
+    await wrapper.vm.$nextTick();
+    await router.push("/");
+    await wrapper.vm.$nextTick();
+
+    // Terug op / moeten ALLE 3 todos weer zichtbaar zijn
+    expect(wrapper.findAll(".todo-list li")).toHaveLength(3);
+  });
 });
