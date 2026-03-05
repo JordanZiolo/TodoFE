@@ -15,6 +15,7 @@
     "format": "prettier --write src/"
   },
   "dependencies": {
+    "mongodb": "^7.1.0",
     "todomvc-app-css": "^2.4.3",
     "todomvc-common": "^1.0.5",
     "vue": "^3.3.10",
